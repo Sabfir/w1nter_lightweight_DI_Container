@@ -9,8 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Winter {
+    private String packageName;
 
-    private Map<String, Class> getClassesInPackage(String packageName) {
+    private Map<String, Class> getAnnotatedClasses() {
         final String CLASS_SUFFIX = ".class";
         Map<String, Class> classes = new HashMap<String, Class>();
         String packageNameFormatted = "/" + packageName.replace(".", "/");
@@ -47,5 +48,15 @@ public class Winter {
 //            LOG.warn(packageName + " does not appear to exist as a valid package on the file system.");
         }
         return classes;
+    }
+
+    public Winter(String packageName) {
+        this.packageName = packageName;
+        getAnnotatedClasses();
+    }
+
+    public void addSnowflakes(String packageName) {
+        this.packageName = packageName;
+        getAnnotatedClasses();
     }
 }
