@@ -1,9 +1,7 @@
 package container;
 
 import container.annotation.SnowFlake;
-
 import java.io.File;
-import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,9 +33,9 @@ public class Winter {
                     fileName = fileName.substring(0, fileName.length() - 6);
                     try {
                         Class scannedClass = Class.forName(packageName + "." + fileName);
-                        Annotation snowFlake = scannedClass.getAnnotation(SnowFlake.class);
+                        SnowFlake snowFlake = (SnowFlake)scannedClass.getAnnotation(SnowFlake.class);
                         if (snowFlake != null) {
-                            classes.put(((SnowFlake)snowFlake).beanName(), scannedClass);
+                            classes.put(snowFlake.value(), scannedClass);
                         }
                     } catch (ClassNotFoundException e) {
 //                        LOG.warn(packageName + "." + fileName + " does not appear to be a valid class.", e);
