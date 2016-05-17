@@ -1,10 +1,10 @@
-package w1nter;
+package container;
 
 /**
  * Hello world!
  *
  */
-public class App 
+public class Winter
 {
     public static void main( String[] args )
     {
