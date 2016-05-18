@@ -7,18 +7,16 @@ import container.annotation.SnowFlake;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Winter {
     private String packageName;
-    private Map<String, ClassProperty> classAnnotationProperty = new HashMap<String, ClassProperty>();
+    private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
     private List<Object> objectList = new ArrayList<Object>();
 
-    private Map<String, ClassProperty> getAnnotatedClasses() {
+    private List<ClassProperty> getAnnotatedClasses() {
         final String CLASS_SUFFIX = ".class";
-        Map<String, ClassProperty> classes = new HashMap<String, ClassProperty>();
+        List<ClassProperty> classes = new ArrayList<>();
         String packageNameFormatted = "/" + packageName.replace(".", "/");
         URL packageLocation = Thread.currentThread().getContextClassLoader().getResource(packageNameFormatted);
         if (packageLocation == null) {
@@ -42,7 +40,7 @@ public class Winter {
                         Class scannedClass = Class.forName(packageName + "." + fileName);
                         SnowFlake snowFlake = (SnowFlake)scannedClass.getAnnotation(SnowFlake.class);
                         if (snowFlake != null) {
-                            classes.put(snowFlake.value(), getClassProperty(scannedClass));
+                            classes.add(getClassProperty(scannedClass, snowFlake.value()));
                         }
                     } catch (ClassNotFoundException e) {
 //                        LOG.warn(packageName + "." + fileName + " does not appear to be a valid class.", e);
@@ -61,8 +59,9 @@ public class Winter {
         return classProperty;
     }
     private void publishClassInfo(){
-        for (Map.Entry<String, ClassProperty> classInfo : classAnnotationProperty.entrySet()) {
-            Class scannedClass = classInfo.getValue().getAnnotatedClass();
+        for (ClassProperty classInfo : annotatedClassProperty) {
+            //TODO
+            Class scannedClass = classInfo.getClazz();
             Report report = (Report)scannedClass.getAnnotation(Report.class);
             if (report!= null) {
                 //TODO report.path()
@@ -71,52 +70,63 @@ public class Winter {
     }
 
     public <T>T getSnowflake(String beanName) {
+        if (beanName.isEmpty()) {
+
+        }
         return (T)null;
     }
 
     public Winter(String packageName) {
         this.packageName = packageName;
-        getAnnotatedClasses();
+        annotatedClassProperty = getAnnotatedClasses();
         publishClassInfo();
     }
 
     public void addSnowflakes(String packageName) {
         this.packageName = packageName;
-        getAnnotatedClasses();
+        annotatedClassProperty = getAnnotatedClasses();
         publishClassInfo();
     }
 
+    private void publishClass(Class scannedClass){
+
+    }
+    private ClassProperty getClassProperty(Class scannedClass, String beanName) {
+        ClassProperty classProperty = new ClassProperty(scannedClass);
+        classProperty.setIsCopied(scannedClass.isAnnotationPresent(Copied.class));
+        classProperty.setIsDenied(scannedClass.isAnnotationPresent(Denied.class));
+        classProperty.setBeanName(beanName);
+        return classProperty;
+    }
     private class ClassProperty {
-        private Class annotatedClass;
-        private boolean isDenied;
-        private boolean isCopied;
+        private String beanName;
+        private Class clazz;
+        private boolean denied;
+        private boolean copied;
 
         public ClassProperty(Class annotatedClass) {
-            this.annotatedClass = annotatedClass;
+            this.clazz = annotatedClass;
         }
-
-        public Class getAnnotatedClass() {
-            return annotatedClass;
+        public Class getClazz() {
+            return clazz;
         }
-
-        public void setAnnotatedClass(Class annotatedClass) {
-            this.annotatedClass = annotatedClass;
-        }
-
         public boolean isDenied() {
-            return isDenied;
+            return denied;
         }
-
         public void setIsDenied(boolean isDenied) {
-            this.isDenied = isDenied;
+            this.denied = isDenied;
         }
-
         public boolean isCopied() {
-            return isCopied;
+            return copied;
         }
-
         public void setIsCopied(boolean isCopied) {
-            this.isCopied = isCopied;
+            this.copied = isCopied;
+        }
+        public String getBeanName() {
+            return beanName;
+        }
+        public void setBeanName(String beanName) {
+            this.beanName = beanName;
         }
     }
 }
