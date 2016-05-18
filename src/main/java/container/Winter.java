@@ -2,6 +2,7 @@ package container;
 
 import container.annotation.Denied;
 import container.annotation.Report;
+import container.annotation.SnowFlake;
 import exception.BeanCreationDeniedException;
 import exception.BeanNotFound;
 import static helper.ReflectionDecorator.*;
@@ -64,7 +65,7 @@ public class Winter {
     }
 
     public Winter(String packageName) {
-        annotatedClassProperty = getAnnotatedClasses(packageName);
+        annotatedClassProperty = getAnnotatedClasses(packageName, SnowFlake.class);
         initializeContainer();
         publishClassInfo();
     }
@@ -88,7 +89,7 @@ public class Winter {
     }
 
     public void addSnowflakes(String packageName) {
-        annotatedClassProperty = getAnnotatedClasses(packageName);
+        annotatedClassProperty = getAnnotatedClasses(packageName, SnowFlake.class);
         initializeContainer();
         publishClassInfo();
     }
