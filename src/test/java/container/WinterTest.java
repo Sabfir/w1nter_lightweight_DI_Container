@@ -1,38 +1,37 @@
 package container;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import static org.junit.Assert.*;
 
-/**
- * Unit test for simple Winter.
- */
-public class WinterTest
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public WinterTest(String testName)
-    {
-        super( testName );
-    }
+import org.junit.Before;
+import org.junit.Test;
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( WinterTest.class );
-    }
+import bean.Fox;
 
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
-    }
+public class WinterTest {
+	String message;
+	
+	@Before
+	public void setUp() {
+		
+	}
+	
+	@Test
+	public void testCreateTeacher() {
+		message = "When CreateTeacher is triggered with all data provided, "
+				+ "then it should be created and added to the list";
+		
+		Winter winter = new Winter("bean");
+		
+//		assertEquals(message, 1, department.getTeachers().size());
+	}
+	
+//	@Test(expected = ObjectExistException.class)
+//	public void testCreateTeacherThatExists() throws ObjectExistException, InvalidArgumentException {
+//		message = "When CreateTeacher is triggered with passport of existing teacher, "
+//				+ "then it should throw ObjectExistException";
+//		
+//		department.createTeacher("Rick", "Rest", "taxpayerId", "DET982");
+//		department.createTeacher("Rick", "Rest", "taxpayerId", "DET982");
+//	}
+	
 }
