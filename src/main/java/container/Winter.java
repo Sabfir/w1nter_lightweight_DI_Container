@@ -2,15 +2,19 @@ package container;
 
 import container.annotation.Copied;
 import container.annotation.Denied;
+import container.annotation.Report;
 import container.annotation.SnowFlake;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Winter {
     private String packageName;
     private Map<String, ClassProperty> classAnnotationProperty = new HashMap<String, ClassProperty>();
+    private List<Object> objectList = new ArrayList<Object>();
 
     private Map<String, ClassProperty> getAnnotatedClasses() {
         final String CLASS_SUFFIX = ".class";
@@ -56,18 +60,30 @@ public class Winter {
         classProperty.setIsDenied(scannedClass.isAnnotationPresent(Denied.class));
         return classProperty;
     }
-    private void publishClass(Class scannedClass){
+    private void publishClassInfo(){
+        for (Map.Entry<String, ClassProperty> classInfo : classAnnotationProperty.entrySet()) {
+            Class scannedClass = classInfo.getValue().getAnnotatedClass();
+            Report report = (Report)scannedClass.getAnnotation(Report.class);
+            if (report!= null) {
+                //TODO report.path()
+            }
+        }
+    }
 
+    public <T>T getSnowflake(String beanName) {
+        return (T)null;
     }
 
     public Winter(String packageName) {
         this.packageName = packageName;
         getAnnotatedClasses();
+        publishClassInfo();
     }
 
     public void addSnowflakes(String packageName) {
         this.packageName = packageName;
         getAnnotatedClasses();
+        publishClassInfo();
     }
 
     private class ClassProperty {
