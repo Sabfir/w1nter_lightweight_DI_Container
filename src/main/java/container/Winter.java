@@ -1,68 +1,28 @@
 package container;
 
-import container.annotation.Copied;
 import container.annotation.Denied;
 import container.annotation.Report;
 import container.annotation.SnowFlake;
-import java.io.File;
-import java.net.URL;
+import exception.BeanCreationDeniedException;
+import exception.BeanNotFound;
+import static helper.ReflectionDecorator.*;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Winter {
-    private String packageName;
-    private Map<String, ClassProperty> classAnnotationProperty = new HashMap<String, ClassProperty>();
-    private List<Object> objectList = new ArrayList<Object>();
+    private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
+    private Map<Class, Object> objectPool = new HashMap<>();
 
-    private Map<String, ClassProperty> getAnnotatedClasses() {
-        final String CLASS_SUFFIX = ".class";
-        Map<String, ClassProperty> classes = new HashMap<String, ClassProperty>();
-        String packageNameFormatted = "/" + packageName.replace(".", "/");
-        URL packageLocation = Thread.currentThread().getContextClassLoader().getResource(packageNameFormatted);
-        if (packageLocation == null) {
-//            LOG.warn("Could not retrieve URL resource: " + packageNameSlashed);
-            return classes;
-        }
 
-        String directoryString = packageLocation.getFile();
-        if (directoryString == null) {
-//            LOG.warn("Could not find directory for URL resource: " + packageNameSlashed);
-            return classes;
-        }
-
-        File directory = new File(directoryString);
-        if (directory.exists()) {
-            String[] files = directory.list();
-            for (String fileName : files) {
-                if (fileName.endsWith(CLASS_SUFFIX)) {
-                    fileName = fileName.substring(0, fileName.length() - 6);
-                    try {
-                        Class scannedClass = Class.forName(packageName + "." + fileName);
-                        SnowFlake snowFlake = (SnowFlake)scannedClass.getAnnotation(SnowFlake.class);
-                        if (snowFlake != null) {
-                            classes.put(snowFlake.value(), getClassProperty(scannedClass));
-                        }
-                    } catch (ClassNotFoundException e) {
-//                        LOG.warn(packageName + "." + fileName + " does not appear to be a valid class.", e);
-                    }
-                }
-            }
-        } else {
-//            LOG.warn(packageName + " does not appear to exist as a valid package on the file system.");
-        }
-        return classes;
-    }
-    private ClassProperty getClassProperty(Class scannedClass) {
-        ClassProperty classProperty = new ClassProperty(scannedClass);
-        classProperty.setIsCopied(scannedClass.isAnnotationPresent(Copied.class));
-        classProperty.setIsDenied(scannedClass.isAnnotationPresent(Denied.class));
-        return classProperty;
-    }
     private void publishClassInfo(){
-        for (Map.Entry<String, ClassProperty> classInfo : classAnnotationProperty.entrySet()) {
-            Class scannedClass = classInfo.getValue().getAnnotatedClass();
+        for (ClassProperty classInfo : annotatedClassProperty) {
+            //TODO
+            Class scannedClass = classInfo.getClazz();
             Report report = (Report)scannedClass.getAnnotation(Report.class);
             if (report!= null) {
                 //TODO report.path()
@@ -71,52 +31,66 @@ public class Winter {
     }
 
     public <T>T getSnowflake(String beanName) {
+        if (beanName.isEmpty()) {
+            //TODO exception
+        }
+        try {
+            ClassProperty classInfo = getClassByBeanName(beanName);
+            Class clazz = classInfo.getClazz();
+            if (classInfo.isDenied()) {
+                throw new BeanCreationDeniedException("Creating instance of " + beanName + " forbidden. See info about " + Denied.class.toString());
+            }
+            if (!classInfo.isCopied()) {
+                return (T)objectPool.get(clazz);
+            } else {
+                Constructor defaultConstructor = clazz.getDeclaredConstructor();
+                defaultConstructor.setAccessible(true);
+                return (T)defaultConstructor.newInstance();
+            }
+        } catch (BeanNotFound | BeanCreationDeniedException e){
+            //TODO logging e.getMessage()
+        } catch (NoSuchMethodException| InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            //TODO logging e.printStackTrace(); problem with constr
+        }
         return (T)null;
     }
 
+    public ClassProperty getClassByBeanName(String beanName) throws BeanNotFound {
+        for (ClassProperty classInfo : annotatedClassProperty) {
+            if (classInfo.getBeanName().equalsIgnoreCase(beanName)) {
+                return classInfo;
+            }
+        }
+        throw new BeanNotFound("Doesn\'t find class by alias: " + beanName);
+    }
+
     public Winter(String packageName) {
-        this.packageName = packageName;
-        getAnnotatedClasses();
+        annotatedClassProperty = getAnnotatedClasses(packageName, SnowFlake.class);
+        initializeContainer();
         publishClassInfo();
+    }
+
+    public void initializeContainer(){
+        if (!objectPool.isEmpty()) return;
+        for (ClassProperty classInfo : annotatedClassProperty) {
+            if (!classInfo.isCopied()) continue;
+            try {
+                Class clazz = classInfo.getClazz();
+                Constructor defaultConstructor = clazz.getDeclaredConstructor();
+                defaultConstructor.setAccessible(true);
+                Object newInstance = defaultConstructor.newInstance();
+                objectPool.put(clazz, newInstance);
+            } catch (NoSuchMethodException e) {
+                //TODO logging e.printStackTrace(); not exist def. constr.
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                //TODO logging e.printStackTrace(); problem with constr
+            }
+        }
     }
 
     public void addSnowflakes(String packageName) {
-        this.packageName = packageName;
-        getAnnotatedClasses();
+        annotatedClassProperty = getAnnotatedClasses(packageName, SnowFlake.class);
+        initializeContainer();
         publishClassInfo();
-    }
-
-    private class ClassProperty {
-        private Class annotatedClass;
-        private boolean isDenied;
-        private boolean isCopied;
-
-        public ClassProperty(Class annotatedClass) {
-            this.annotatedClass = annotatedClass;
-        }
-
-        public Class getAnnotatedClass() {
-            return annotatedClass;
-        }
-
-        public void setAnnotatedClass(Class annotatedClass) {
-            this.annotatedClass = annotatedClass;
-        }
-
-        public boolean isDenied() {
-            return isDenied;
-        }
-
-        public void setIsDenied(boolean isDenied) {
-            this.isDenied = isDenied;
-        }
-
-        public boolean isCopied() {
-            return isCopied;
-        }
-
-        public void setIsCopied(boolean isCopied) {
-            this.isCopied = isCopied;
-        }
     }
 }
