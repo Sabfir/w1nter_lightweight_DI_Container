@@ -1,4 +1,4 @@
-package unscannableBean;
+package beans.notscanned;
 
 import container.annotation.SnowFlake;
 

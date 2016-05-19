@@ -15,9 +15,76 @@ import java.util.List;
 import java.util.Map;
 
 public class Winter {
+	private String packageName;
     private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
     private Map<Class, Object> objectPool = new HashMap<>();
 
+    public Winter() {
+    }
+    
+    public Winter(String packageName) {
+    	this.packageName = packageName;
+    	
+        initializeContainer();
+        publishClassInfo();
+    }
+    
+    public void addSnowflakes(String packageName) {
+    	this.packageName = packageName;
+    	
+        initializeContainer();
+        publishClassInfo();
+    }
+
+    public <T>T getSnowflake(String beanName) {
+        if (beanName == null || beanName.isEmpty()) {
+            //TODO exception
+        }
+        
+        T snowFlake = null;
+        
+        try {
+            ClassProperty classInfo = getClassByBeanName(beanName);
+            Class clazz = classInfo.getClazz();
+            
+            if (classInfo.isDenied()) {
+                throw new BeanCreationDeniedException("Creating instance of " + beanName + " forbidden. See info about " + Denied.class.toString());
+            }
+            
+            if (!classInfo.isCopied()) {
+            	snowFlake = (T)objectPool.get(clazz);
+            	
+            	if (null == snowFlake) {
+            		snowFlake = createInstanceByClass(clazz);
+            		objectPool.put(clazz, snowFlake);
+            	}
+            } else {
+            	snowFlake = createInstanceByClass(clazz);
+            }
+        } catch (BeanNotFound | BeanCreationDeniedException e){
+            //TODO logging e.getMessage()
+        } catch (NoSuchMethodException| InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            //TODO logging e.printStackTrace(); problem with constr
+        }
+        
+        return snowFlake;
+    }
+
+    public ClassProperty getClassByBeanName(String beanName) throws BeanNotFound {
+        for (ClassProperty classInfo : annotatedClassProperty) {
+            if (classInfo.getBeanName().equalsIgnoreCase(beanName)) {
+                return classInfo;
+            }
+        }
+        throw new BeanNotFound("Doesn\'t find class by alias: " + beanName);
+    }
+
+    private <T> T createInstanceByClass(Class clazz) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    	Constructor defaultConstructor = clazz.getDeclaredConstructor();
+        defaultConstructor.setAccessible(true);
+        
+        return (T)defaultConstructor.newInstance();
+	}
 
     private void publishClassInfo(){
         for (ClassProperty classInfo : annotatedClassProperty) {
@@ -30,67 +97,11 @@ public class Winter {
         }
     }
 
-    public <T>T getSnowflake(String beanName) {
-        if (beanName.isEmpty()) {
-            //TODO exception
+    private void initializeContainer(){
+        if (!objectPool.isEmpty()) {
+        	objectPool.clear();
         }
-        try {
-            ClassProperty classInfo = getClassByBeanName(beanName);
-            Class clazz = classInfo.getClazz();
-            if (classInfo.isDenied()) {
-                throw new BeanCreationDeniedException("Creating instance of " + beanName + " forbidden. See info about " + Denied.class.toString());
-            }
-            if (!classInfo.isCopied()) {
-                return (T)objectPool.get(clazz);
-            } else {
-                Constructor defaultConstructor = clazz.getDeclaredConstructor();
-                defaultConstructor.setAccessible(true);
-                return (T)defaultConstructor.newInstance();
-            }
-        } catch (BeanNotFound | BeanCreationDeniedException e){
-            //TODO logging e.getMessage()
-        } catch (NoSuchMethodException| InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            //TODO logging e.printStackTrace(); problem with constr
-        }
-        return (T)null;
-    }
-
-    public ClassProperty getClassByBeanName(String beanName) throws BeanNotFound {
-        for (ClassProperty classInfo : annotatedClassProperty) {
-            if (classInfo.getBeanName().equalsIgnoreCase(beanName)) {
-                return classInfo;
-            }
-        }
-        throw new BeanNotFound("Doesn\'t find class by alias: " + beanName);
-    }
-
-    public Winter(String packageName) {
+        
         annotatedClassProperty = getAnnotatedClasses(packageName, SnowFlake.class);
-        initializeContainer();
-        publishClassInfo();
-    }
-
-    public void initializeContainer(){
-        if (!objectPool.isEmpty()) return;
-        for (ClassProperty classInfo : annotatedClassProperty) {
-            if (!classInfo.isCopied()) continue;
-            try {
-                Class clazz = classInfo.getClazz();
-                Constructor defaultConstructor = clazz.getDeclaredConstructor();
-                defaultConstructor.setAccessible(true);
-                Object newInstance = defaultConstructor.newInstance();
-                objectPool.put(clazz, newInstance);
-            } catch (NoSuchMethodException e) {
-                //TODO logging e.printStackTrace(); not exist def. constr.
-            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
-                //TODO logging e.printStackTrace(); problem with constr
-            }
-        }
-    }
-
-    public void addSnowflakes(String packageName) {
-        annotatedClassProperty = getAnnotatedClasses(packageName, SnowFlake.class);
-        initializeContainer();
-        publishClassInfo();
     }
 }

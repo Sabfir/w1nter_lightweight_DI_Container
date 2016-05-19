@@ -1,7 +1,7 @@
-package bean;
+package beans.scanned;
 
 import container.annotation.SnowFlake;
 
-@SnowFlake("foxFlake")
+@SnowFlake("bearFlake")
 public class Bear {
 }
