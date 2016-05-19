@@ -1,7 +1,7 @@
 import static org.junit.Assert.*;
-
-import bean.Fox;
+import beans.scanned.Fox;
 import container.Winter;
+
 import org.junit.Before;
 import org.junit.Test;
 

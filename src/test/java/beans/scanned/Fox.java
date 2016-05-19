@@ -1,4 +1,4 @@
-package bean;
+package beans.scanned;
 
 import container.annotation.Copied;
 import container.annotation.SnowFlake;

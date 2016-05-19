@@ -16,12 +16,15 @@ public final class ReflectionDecorator {
     private static List<ClassProperty> listAnnotatedClasses = new ArrayList<>();
 
     public static List<ClassProperty> getAnnotatedClasses(String packageName, Class annotationType) {
-        for (Class clazz : getClasses(packageName)) {
+    	listAnnotatedClasses.clear();
+        
+    	for (Class clazz : getClasses(packageName)) {
             Annotation annotation = clazz.getAnnotation(annotationType);
             if (annotation != null) {
                 listAnnotatedClasses.add(getClassProperty(clazz, annotationType));
             }
         }
+        
         return listAnnotatedClasses;
     }
     public static List<Class> getClasses(String packageName){
@@ -46,9 +49,21 @@ public final class ReflectionDecorator {
                 //TODO e.printStackTrace();
             }
         }
+        
         return classes;
     }
-    public static List findClasses(File directory, String packageName) throws ClassNotFoundException {
+    
+    private static ClassProperty getClassProperty(Class scannedClass, Class annotationType) {
+        ClassProperty classProperty = new ClassProperty(scannedClass);
+        classProperty.setIsCopied(scannedClass.isAnnotationPresent(Copied.class));
+        classProperty.setIsDenied(scannedClass.isAnnotationPresent(Denied.class));
+        Annotation annotation = scannedClass.getAnnotation(annotationType);
+        classProperty.setBeanName(((SnowFlake)annotation).value());
+        
+        return classProperty;
+    }
+
+    private static List findClasses(File directory, String packageName) throws ClassNotFoundException {
         List<Class> classes = new ArrayList();
         if (!directory.exists()) {
             return classes;
@@ -62,16 +77,8 @@ public final class ReflectionDecorator {
                 classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
             }
         }
+        
         return classes;
-    }
-
-    public static ClassProperty getClassProperty(Class scannedClass, Class annotationType) {
-        ClassProperty classProperty = new ClassProperty(scannedClass);
-        classProperty.setIsCopied(scannedClass.isAnnotationPresent(Copied.class));
-        classProperty.setIsDenied(scannedClass.isAnnotationPresent(Denied.class));
-        Annotation annotation = scannedClass.getAnnotation(annotationType);
-        classProperty.setBeanName(((SnowFlake)annotation).value());
-        return classProperty;
     }
 
     public static class ClassProperty {
@@ -80,8 +87,8 @@ public final class ReflectionDecorator {
         private boolean denied;
         private boolean copied;
 
-        private ClassProperty(Class annotatedClass) {
-            this.clazz = annotatedClass;
+        private ClassProperty(Class clazz) {
+            this.clazz = clazz;
         }
         public Class getClazz() {
             return clazz;
