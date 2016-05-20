@@ -6,9 +6,10 @@ import container.annotation.SnowFlake;
 import exception.BeanCreationDeniedException;
 import exception.BeanNotFound;
 import helper.FileHelper;
-import helper.Log4j2Wrapper;
 
-import org.apache.logging.log4j.Logger;
+// Import log4j classes.
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
 
 import static helper.ReflectionDecorator.*;
 
@@ -25,7 +26,7 @@ public class Winter {
     private String packageName;
     private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
     private Map<Class, Object> objectPool = new HashMap<>();
-    private static final Logger LOGGER = Log4j2Wrapper.getLogger(Winter.class.toString());
+    static Logger logger = Logger.getLogger(Winter.class);
     
     public Winter() {
     }
@@ -46,7 +47,8 @@ public class Winter {
 
     public <T>T getSnowflake(String beanName) {
         if (beanName == null || beanName.isEmpty()) {
-            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, "Empty name of bean not allowed");
+        	// TODO logger
+            //LOGGER.info(Log4j2Wrapper.MARKER_FLOW, "Empty name of bean not allowed");
         }
         
         T snowFlake = null;
@@ -70,9 +72,11 @@ public class Winter {
             	snowFlake = createInstanceByClass(clazz);
             }
         } catch (BeanNotFound e){
-            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
+        	// TODO logger
+            //LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
         } catch (BeanCreationDeniedException e) {
-            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
+        	// TODO logger
+        	//LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
         }
         
         return snowFlake;
@@ -95,7 +99,8 @@ public class Winter {
             defaultConstructor.setAccessible(true);
             newInstance = (T)defaultConstructor.newInstance();
         } catch (Exception e) {
-            LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Instance of class: " + clazz.toString() + " didn\'t create due to problem with constructor", e);
+        	// TODO logger
+        	//LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Instance of class: " + clazz.toString() + " didn\'t create due to problem with constructor", e);
         }
         return newInstance;
     }

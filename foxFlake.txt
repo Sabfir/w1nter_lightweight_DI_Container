@@ -1,2 +1,0 @@
-Class: class beans.scanned.Fox
-We also have this reflection API
