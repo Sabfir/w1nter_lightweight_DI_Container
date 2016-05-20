@@ -1,5 +1,9 @@
 package helper;
 
+import beans.scanned.Bear;
+import beans.scanned.Fox;
+import beans.scanned.NotAnnotated;
+import beans.scanned.Rabbit;
 import helper.ReflectionDecorator.ClassProperty;
 
 import java.util.List;
@@ -20,21 +24,23 @@ public class ReflectionDecoratorTest {
 
     @Test
     public void testGetAnnotatedClasses() throws Exception {
+        Class[] selectedClasses = {Bear.class, Fox.class, Rabbit.class};
     	message = "When GetAnnotatedClasses is triggered, "
 				+ "then it should return the list of all annotated classes";
 		
     	List<ClassProperty> classProperties = ReflectionDecorator.getAnnotatedClasses("beans.scanned", SnowFlake.class);
     	
-    	assertEquals(message, 3, classProperties.size());
+    	assertEquals(message, selectedClasses.length, classProperties.size());
     }
 
     @Test
     public void testGetClasses() throws Exception {
-    	message = "When GetAnnotatedClasses is triggered, "
+        Class[] selectedClasses = {Bear.class, Fox.class, Rabbit.class, NotAnnotated.class};
+        message = "When GetAnnotatedClasses is triggered, "
 				+ "then it should return the list of all annotated classes";
 		
     	List<Class> classes = ReflectionDecorator.getClasses("beans.scanned");
     	
-    	assertEquals(message, 4, classes.size());
+    	assertEquals(message, selectedClasses.length, classes.size());
     }
 }

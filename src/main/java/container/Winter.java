@@ -7,10 +7,7 @@ import exception.BeanCreationDeniedException;
 import exception.BeanNotFound;
 import helper.FileHelper;
 
-// Import log4j classes.
 import org.apache.log4j.Logger;
-import org.apache.log4j.BasicConfigurator;
-
 import static helper.ReflectionDecorator.*;
 
 import java.lang.annotation.Annotation;
@@ -26,7 +23,7 @@ public class Winter {
     private String packageName;
     private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
     private Map<Class, Object> objectPool = new HashMap<>();
-    static Logger logger = Logger.getLogger(Winter.class);
+    static Logger logger = Logger.getRootLogger();
     
     public Winter() {
     }
@@ -47,8 +44,7 @@ public class Winter {
 
     public <T>T getSnowflake(String beanName) {
         if (beanName == null || beanName.isEmpty()) {
-        	// TODO logger
-            //LOGGER.info(Log4j2Wrapper.MARKER_FLOW, "Empty name of bean not allowed");
+            logger.info("Empty name of bean not allowed");
         }
         
         T snowFlake = null;
@@ -72,11 +68,9 @@ public class Winter {
             	snowFlake = createInstanceByClass(clazz);
             }
         } catch (BeanNotFound e){
-        	// TODO logger
-            //LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
+            logger.info(e.getMessage(), e);
         } catch (BeanCreationDeniedException e) {
-        	// TODO logger
-        	//LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
+            logger.info(e.getMessage(), e);
         }
         
         return snowFlake;
@@ -99,8 +93,7 @@ public class Winter {
             defaultConstructor.setAccessible(true);
             newInstance = (T)defaultConstructor.newInstance();
         } catch (Exception e) {
-        	// TODO logger
-        	//LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Instance of class: " + clazz.toString() + " didn\'t create due to problem with constructor", e);
+            logger.info("Instance of class: " + clazz.toString() + " didn\'t create due to problem with constructor", e);
         }
         return newInstance;
     }
@@ -108,9 +101,9 @@ public class Winter {
     private void publishClassInfo(){
         for (ClassProperty classInfo : annotatedClassProperty) {
             Class scannedClass = classInfo.getClazz();
-            Annotation report = scannedClass.getAnnotation(Report.class);
+            Report report = (Report)scannedClass.getAnnotation(Report.class);
             if (report!= null) {
-            	String filepath = ((Report)report).path();
+            	String filepath = report.path();
             	String fullpath = filepath + "/" + classInfo.getBeanName() + ".txt";
             	
             	if (FileHelper.createFileByFullpath(fullpath)) {
@@ -121,13 +114,18 @@ public class Winter {
             		FileHelper.addLineToFile(fullpath, "Fields:");
             		Field [] fields = scannedClass.getDeclaredFields();
             		for (Field field : fields) {
-            			FileHelper.addLineToFile(fullpath, "  --- " + field.getName() + " (" + field.getType() + ")");
+            			FileHelper.addLineToFile(fullpath, "\t" + field.getName() + " (" + field.getType() + ")");
 					}
             		FileHelper.addLineToFile(fullpath, "Methods:");
             		Method[] methods = scannedClass.getDeclaredMethods();
             		for (Method method : methods) {
-            			FileHelper.addLineToFile(fullpath, "  --- " + method.getName() + " (" + method.getReturnType() + ")");
+            			FileHelper.addLineToFile(fullpath, "\t" + method.getName() + " (" + method.getReturnType() + ")");
 					}
+                    FileHelper.addLineToFile(fullpath, "Annotations:");
+                    Annotation[] annotations = scannedClass.getAnnotations();
+                    for (Annotation annotation : annotations) {
+                        FileHelper.addLineToFile(fullpath, "\t" + annotation.toString() + " (" + annotation.annotationType() + ")");
+                    }
             	}
             }
         }
