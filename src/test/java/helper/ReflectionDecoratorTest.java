@@ -10,9 +10,6 @@ import org.junit.Test;
 import container.annotation.SnowFlake;
 import static org.junit.Assert.*;
 
-/**
- * Created by alex on 19.05.16.
- */
 public class ReflectionDecoratorTest {
 	String message;
 	
@@ -28,7 +25,7 @@ public class ReflectionDecoratorTest {
 		
     	List<ClassProperty> classProperties = ReflectionDecorator.getAnnotatedClasses("beans.scanned", SnowFlake.class);
     	
-    	assertEquals("", 3, classProperties.size());
+    	assertEquals(message, 3, classProperties.size());
     }
 
     @Test
@@ -38,6 +35,6 @@ public class ReflectionDecoratorTest {
 		
     	List<Class> classes = ReflectionDecorator.getClasses("beans.scanned");
     	
-    	assertEquals("", 4, classes.size());
+    	assertEquals(message, 4, classes.size());
     }
 }

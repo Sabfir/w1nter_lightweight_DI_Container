@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
-
 import beans.notscanned.Wolf;
 import beans.scanned.Bear;
 import beans.scanned.Fox;
