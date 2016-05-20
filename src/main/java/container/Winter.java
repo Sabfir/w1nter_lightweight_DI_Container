@@ -1,3 +1,13 @@
+/**
+* Domain classes used to create and manage container
+* <p>
+* These classes contain the Winter functionality
+* </p>
+*
+* @since 1.0
+* @author Alex Pinta, Oleh Pinta
+* @version 1.0
+*/
 package container;
 
 import container.annotation.Denied;
@@ -19,6 +29,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+* The Winter class implements DI Container like lightweight DI in Spring Framework.
+* You can initialize Winter container by creating new instance of this class
+* and the use it creating new instances of the classes in the container
+* 
+* @author  Alex Pinta, Oleh Pinta
+*/
 public class Winter {
     private String packageName;
     private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
@@ -42,6 +59,11 @@ public class Winter {
         publishClassInfo();
     }
 
+    /**
+     * This method is used to create in instance of the annotated class by bean name.
+     * @param beanName. Using this string method find the class in annotatedClassProperty.
+     * If it exists, then it create an instance of this class
+     */
     public <T>T getSnowflake(String beanName) {
         if (beanName == null || beanName.isEmpty()) {
             logger.info("Empty name of bean not allowed");
@@ -76,6 +98,10 @@ public class Winter {
         return snowFlake;
     }
     
+	/**
+	 * This method is used to find class property in annotatedClassProperty list.
+	 * @param beanName. Using this parameter method find the class in annotatedClassProperty and return it
+	 */
     public ClassProperty getClassByBeanName(String beanName) throws BeanNotFound {
         for (ClassProperty classInfo : annotatedClassProperty) {
             if (classInfo.getBeanName().equalsIgnoreCase(beanName)) {
@@ -85,6 +111,10 @@ public class Winter {
         throw new BeanNotFound("Doesn\'t find class by alias: " + beanName);
     }
 
+    /**
+	 * This method is used to create object of given class.
+	 * @param clazz. This is the class which instance we want to create
+	 */
     private <T> T createInstanceByClass(Class clazz) {
         Constructor defaultConstructor = null;
         T newInstance = null;
@@ -98,6 +128,9 @@ public class Winter {
         return newInstance;
     }
 
+    /**
+	 * This method is used to create a Report and save it on your local machine.
+	 */
     private void publishClassInfo(){
         for (ClassProperty classInfo : annotatedClassProperty) {
             Class scannedClass = classInfo.getClazz();
@@ -130,7 +163,11 @@ public class Winter {
             }
         }
     }
-
+    
+    /**
+     * This method is used to initialize Winter container instance.
+     * It fills all annotated class in the package packageName
+     */
     private void initializeContainer(){
         if (!objectPool.isEmpty()) {
         	objectPool.clear();
