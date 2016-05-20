@@ -1,3 +1,13 @@
+/**
+* Helper classes used to work with files and packages
+* <p>
+* These classes contain the some CRUD with files and detecting classes in the package functionality
+* </p>
+*
+* @since 1.0
+* @author Alex Pinta, Oleh Pinta
+* @version 1.0
+*/
 package helper;
 
 import container.annotation.Copied;
@@ -13,10 +23,16 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+/**
+* The ReflectionDecorator class implements functionality to detect classes in the package and work with them
+* 
+* @author  Alex Pinta, Oleh Pinta
+*/
 public final class ReflectionDecorator {
     static Logger logger = Logger.getRootLogger();
     private static List<ClassProperty> listAnnotatedClasses = new ArrayList<>();
 
+    
     public static List<ClassProperty> getAnnotatedClasses(String packageName, Class annotationType) {
     	listAnnotatedClasses.clear();
         
