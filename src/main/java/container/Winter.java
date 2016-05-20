@@ -5,12 +5,18 @@ import container.annotation.Report;
 import container.annotation.SnowFlake;
 import exception.BeanCreationDeniedException;
 import exception.BeanNotFound;
-import helper.Log4j2Wrapper;
-import org.apache.logging.log4j.Logger;
+import helper.FileHelper;
+
+// Import log4j classes.
+import org.apache.log4j.Logger;
+import org.apache.log4j.BasicConfigurator;
+
 import static helper.ReflectionDecorator.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +26,8 @@ public class Winter {
     private String packageName;
     private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
     private Map<Class, Object> objectPool = new HashMap<>();
-    private static final Logger LOGGER = Log4j2Wrapper.getLogger(Winter.class.toString());
+    static Logger logger = Logger.getLogger(Winter.class);
+    
     public Winter() {
     }
     
@@ -40,7 +47,8 @@ public class Winter {
 
     public <T>T getSnowflake(String beanName) {
         if (beanName == null || beanName.isEmpty()) {
-            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, "Pass empty name of bean");
+        	// TODO logger
+            //LOGGER.info(Log4j2Wrapper.MARKER_FLOW, "Empty name of bean not allowed");
         }
         
         T snowFlake = null;
@@ -64,14 +72,16 @@ public class Winter {
             	snowFlake = createInstanceByClass(clazz);
             }
         } catch (BeanNotFound e){
-            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
+        	// TODO logger
+            //LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
         } catch (BeanCreationDeniedException e) {
-            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
+        	// TODO logger
+        	//LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
         }
         
         return snowFlake;
     }
-
+    
     public ClassProperty getClassByBeanName(String beanName) throws BeanNotFound {
         for (ClassProperty classInfo : annotatedClassProperty) {
             if (classInfo.getBeanName().equalsIgnoreCase(beanName)) {
@@ -89,7 +99,8 @@ public class Winter {
             defaultConstructor.setAccessible(true);
             newInstance = (T)defaultConstructor.newInstance();
         } catch (Exception e) {
-            LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Instance of class: " + clazz.toString() + " didn\'t create due to problem with constructor", e);
+        	// TODO logger
+        	//LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Instance of class: " + clazz.toString() + " didn\'t create due to problem with constructor", e);
         }
         return newInstance;
     }
@@ -99,7 +110,25 @@ public class Winter {
             Class scannedClass = classInfo.getClazz();
             Annotation report = scannedClass.getAnnotation(Report.class);
             if (report!= null) {
-
+            	String filepath = ((Report)report).path();
+            	String fullpath = filepath + "/" + classInfo.getBeanName() + ".txt";
+            	
+            	if (FileHelper.createFileByFullpath(fullpath)) {
+            		FileHelper.addLineToFile(fullpath, "Class: " + classInfo.getClazz());
+            		FileHelper.addLineToFile(fullpath, "Copied: " + classInfo.isCopied());
+            		FileHelper.addLineToFile(fullpath, "Danied: " + classInfo.isDenied());
+            		
+            		FileHelper.addLineToFile(fullpath, "Fields:");
+            		Field [] fields = scannedClass.getDeclaredFields();
+            		for (Field field : fields) {
+            			FileHelper.addLineToFile(fullpath, "  --- " + field.getName() + " (" + field.getType() + ")");
+					}
+            		FileHelper.addLineToFile(fullpath, "Methods:");
+            		Method[] methods = scannedClass.getDeclaredMethods();
+            		for (Method method : methods) {
+            			FileHelper.addLineToFile(fullpath, "  --- " + method.getName() + " (" + method.getReturnType() + ")");
+					}
+            	}
             }
         }
     }

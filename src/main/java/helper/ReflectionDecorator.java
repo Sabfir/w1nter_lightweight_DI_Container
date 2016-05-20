@@ -3,7 +3,6 @@ package helper;
 import container.annotation.Copied;
 import container.annotation.Denied;
 import container.annotation.SnowFlake;
-import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -13,8 +12,6 @@ import java.util.Enumeration;
 import java.util.List;
 
 public final class ReflectionDecorator {
-    private static final Logger LOGGER = Log4j2Wrapper.getLogger(ReflectionDecorator.class.toString());
-
     private static List<ClassProperty> listAnnotatedClasses = new ArrayList<>();
 
     public static List<ClassProperty> getAnnotatedClasses(String packageName, Class annotationType) {
@@ -36,7 +33,8 @@ public final class ReflectionDecorator {
         try {
             resources = classLoader.getResources(path);
         } catch (IOException e) {
-            LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Can\'t find out package: " + packageName, e);
+        	// TODO logger
+        	//LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Can\'t find out package: " + packageName, e);
         }
         List<File> dirs = new ArrayList();
         while (resources.hasMoreElements()) {
@@ -77,7 +75,8 @@ public final class ReflectionDecorator {
                     className = packageName + '.' + file.getName().substring(0, file.getName().length() - 6);
                     classes.add(Class.forName(className));
                 } catch (ClassNotFoundException e) {
-                    LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Can\'t find out class: " + className, e);
+                	// TODO logger
+                	//LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Can\'t find out class: " + className, e);
                 }
             }
         }
@@ -91,7 +90,7 @@ public final class ReflectionDecorator {
         private boolean denied;
         private boolean copied;
 
-        private ClassProperty(Class clazz) {
+		private ClassProperty(Class clazz) {
             this.clazz = clazz;
         }
         public Class getClazz() {
