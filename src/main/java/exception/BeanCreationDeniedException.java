@@ -2,17 +2,17 @@ package exception;
 
 public class BeanCreationDeniedException extends Exception {
 
-    public BeanCreationDeniedException(String message) {
+    public BeanCreationDeniedException(final String message) {
         super(message);
     }
-    public BeanCreationDeniedException(String message, Throwable cause) {
+    public BeanCreationDeniedException(final String message, final Throwable cause) {
         super(message, cause);
     }
-    public BeanCreationDeniedException(Throwable cause) {
+    public BeanCreationDeniedException(final Throwable cause) {
         super(cause);
     }
-    public BeanCreationDeniedException(String message, Throwable cause,
-                                       boolean enableSuppression, boolean writableStackTrace) {
+    public BeanCreationDeniedException(final String message, final Throwable cause,
+                                       final boolean enableSuppression, final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

@@ -8,7 +8,7 @@ import exception.BeanNotFound;
 import helper.FileHelper;
 
 import org.apache.log4j.Logger;
-import static helper.ReflectionDecorator.*;
+import helper.ReflectionDecorator;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -21,13 +21,13 @@ import java.util.Map;
 
 public class Winter {
     private String packageName;
-    private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
+    private List<ReflectionDecorator.ClassProperty> annotatedClassProperty = new ArrayList<>();
     private Map<Class, Object> objectPool = new HashMap<>();
-    static Logger logger = Logger.getRootLogger();
+    private static Logger logger = Logger.getRootLogger();
     
     public Winter() {
     }
-    
+
     public Winter(String packageName) {
     	this.packageName = packageName;
     	
@@ -42,7 +42,7 @@ public class Winter {
         publishClassInfo();
     }
 
-    public <T>T getSnowflake(String beanName) {
+    public <T>T getSnowflake(final String beanName) {
         if (beanName == null || beanName.isEmpty()) {
             logger.info("Empty name of bean not allowed");
         }
@@ -50,11 +50,12 @@ public class Winter {
         T snowFlake = null;
         
         try {
-            ClassProperty classInfo = getClassByBeanName(beanName);
+            ReflectionDecorator.ClassProperty classInfo = getClassByBeanName(beanName);
             Class clazz = classInfo.getClazz();
             
             if (classInfo.isDenied()) {
-                throw new BeanCreationDeniedException("Creating instance of " + beanName + " forbidden. See info about " + Denied.class.toString());
+                throw new BeanCreationDeniedException("Creating instance of " + beanName + " forbidden. See info about "
+                        + Denied.class.toString());
             }
             
             if (!classInfo.isCopied()) {
@@ -67,7 +68,7 @@ public class Winter {
             } else {
             	snowFlake = createInstanceByClass(clazz);
             }
-        } catch (BeanNotFound e){
+        } catch (BeanNotFound e) {
             logger.info(e.getMessage(), e);
         } catch (BeanCreationDeniedException e) {
             logger.info(e.getMessage(), e);
@@ -76,8 +77,8 @@ public class Winter {
         return snowFlake;
     }
     
-    public ClassProperty getClassByBeanName(String beanName) throws BeanNotFound {
-        for (ClassProperty classInfo : annotatedClassProperty) {
+    public ReflectionDecorator.ClassProperty getClassByBeanName(final String beanName) throws BeanNotFound {
+        for (ReflectionDecorator.ClassProperty classInfo : annotatedClassProperty) {
             if (classInfo.getBeanName().equalsIgnoreCase(beanName)) {
                 return classInfo;
             }
@@ -97,9 +98,8 @@ public class Winter {
         }
         return newInstance;
     }
-
-    private void publishClassInfo(){
-        for (ClassProperty classInfo : annotatedClassProperty) {
+    private void publishClassInfo() {
+        for (ReflectionDecorator.ClassProperty classInfo : annotatedClassProperty) {
             Class scannedClass = classInfo.getClazz();
             Report report = (Report)scannedClass.getAnnotation(Report.class);
             if (report!= null) {
@@ -136,6 +136,10 @@ public class Winter {
         	objectPool.clear();
         }
         
-        annotatedClassProperty = getAnnotatedClasses(packageName, SnowFlake.class);
+        annotatedClassProperty = ReflectionDecorator.getAnnotatedClasses(this.packageName, SnowFlake.class);
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 }

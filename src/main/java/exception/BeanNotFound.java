@@ -2,17 +2,17 @@ package exception;
 
 public class BeanNotFound extends Exception {
 
-    public BeanNotFound(String message) {
+    public BeanNotFound(final String message) {
         super(message);
     }
-    public BeanNotFound(String message, Throwable cause) {
+    public BeanNotFound(final String message, final Throwable cause) {
         super(message, cause);
     }
-    public BeanNotFound(Throwable cause) {
+    public BeanNotFound(final Throwable cause) {
         super(cause);
     }
-    public BeanNotFound(String message, Throwable cause,
-                           boolean enableSuppression, boolean writableStackTrace) {
+    public BeanNotFound(final String message, final Throwable cause,
+                        final boolean enableSuppression, final boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
