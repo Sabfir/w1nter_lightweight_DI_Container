@@ -1,0 +1,2 @@
+Class: class beans.scanned.Rabbit
+We also have this reflection API

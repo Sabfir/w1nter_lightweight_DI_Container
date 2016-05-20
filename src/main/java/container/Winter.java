@@ -5,12 +5,17 @@ import container.annotation.Report;
 import container.annotation.SnowFlake;
 import exception.BeanCreationDeniedException;
 import exception.BeanNotFound;
+import helper.FileHelper;
 import helper.Log4j2Wrapper;
+
 import org.apache.logging.log4j.Logger;
+
 import static helper.ReflectionDecorator.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +26,7 @@ public class Winter {
     private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
     private Map<Class, Object> objectPool = new HashMap<>();
     private static final Logger LOGGER = Log4j2Wrapper.getLogger(Winter.class.toString());
+    
     public Winter() {
     }
     
@@ -40,7 +46,7 @@ public class Winter {
 
     public <T>T getSnowflake(String beanName) {
         if (beanName == null || beanName.isEmpty()) {
-            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, "Pass empty name of bean");
+            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, "Empty name of bean not allowed");
         }
         
         T snowFlake = null;
@@ -71,7 +77,7 @@ public class Winter {
         
         return snowFlake;
     }
-
+    
     public ClassProperty getClassByBeanName(String beanName) throws BeanNotFound {
         for (ClassProperty classInfo : annotatedClassProperty) {
             if (classInfo.getBeanName().equalsIgnoreCase(beanName)) {
@@ -99,7 +105,25 @@ public class Winter {
             Class scannedClass = classInfo.getClazz();
             Annotation report = scannedClass.getAnnotation(Report.class);
             if (report!= null) {
-
+            	String filepath = ((Report)report).path();
+            	String fullpath = filepath + "/" + classInfo.getBeanName() + ".txt";
+            	
+            	if (FileHelper.createFileByFullpath(fullpath)) {
+            		FileHelper.addLineToFile(fullpath, "Class: " + classInfo.getClazz());
+            		FileHelper.addLineToFile(fullpath, "Copied: " + classInfo.isCopied());
+            		FileHelper.addLineToFile(fullpath, "Danied: " + classInfo.isDenied());
+            		
+            		FileHelper.addLineToFile(fullpath, "Fields:");
+            		Field [] fields = scannedClass.getDeclaredFields();
+            		for (Field field : fields) {
+            			FileHelper.addLineToFile(fullpath, "  --- " + field.getName() + " (" + field.getType() + ")");
+					}
+            		FileHelper.addLineToFile(fullpath, "Methods:");
+            		Method[] methods = scannedClass.getDeclaredMethods();
+            		for (Method method : methods) {
+            			FileHelper.addLineToFile(fullpath, "  --- " + method.getName() + " (" + method.getReturnType() + ")");
+					}
+            	}
             }
         }
     }

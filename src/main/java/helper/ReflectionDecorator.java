@@ -91,7 +91,7 @@ public final class ReflectionDecorator {
         private boolean denied;
         private boolean copied;
 
-        private ClassProperty(Class clazz) {
+		private ClassProperty(Class clazz) {
             this.clazz = clazz;
         }
         public Class getClazz() {
