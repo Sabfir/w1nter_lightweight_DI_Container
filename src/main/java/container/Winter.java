@@ -62,6 +62,7 @@ public class Winter {
     /**
      * This method is used to create in instance of the annotated class by bean name.
      * @param beanName. Using this string method find the class in annotatedClassProperty.
+     * @return <T> return instance by generic type
      * If it exists, then it create an instance of this class
      */
     public <T>T getSnowflake(final String beanName) {
