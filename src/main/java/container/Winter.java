@@ -5,20 +5,22 @@ import container.annotation.Report;
 import container.annotation.SnowFlake;
 import exception.BeanCreationDeniedException;
 import exception.BeanNotFound;
+import helper.Log4j2Wrapper;
+import org.apache.logging.log4j.Logger;
 import static helper.ReflectionDecorator.*;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Winter {
-	private String packageName;
+    private String packageName;
     private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
     private Map<Class, Object> objectPool = new HashMap<>();
-
+    private static final Logger LOGGER = Log4j2Wrapper.getLogger(Winter.class.toString());
     public Winter() {
     }
     
@@ -38,7 +40,7 @@ public class Winter {
 
     public <T>T getSnowflake(String beanName) {
         if (beanName == null || beanName.isEmpty()) {
-            //TODO exception
+            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, "Pass empty name of bean");
         }
         
         T snowFlake = null;
@@ -61,10 +63,10 @@ public class Winter {
             } else {
             	snowFlake = createInstanceByClass(clazz);
             }
-        } catch (BeanNotFound | BeanCreationDeniedException e){
-            //TODO logging e.getMessage()
-        } catch (NoSuchMethodException| InvocationTargetException | InstantiationException | IllegalAccessException e) {
-            //TODO logging e.printStackTrace(); problem with constr
+        } catch (BeanNotFound e){
+            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
+        } catch (BeanCreationDeniedException e) {
+            LOGGER.info(Log4j2Wrapper.MARKER_FLOW, e.getMessage(), e);
         }
         
         return snowFlake;
@@ -79,20 +81,25 @@ public class Winter {
         throw new BeanNotFound("Doesn\'t find class by alias: " + beanName);
     }
 
-    private <T> T createInstanceByClass(Class clazz) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-    	Constructor defaultConstructor = clazz.getDeclaredConstructor();
-        defaultConstructor.setAccessible(true);
-        
-        return (T)defaultConstructor.newInstance();
-	}
+    private <T> T createInstanceByClass(Class clazz) {
+        Constructor defaultConstructor = null;
+        T newInstance = null;
+        try {
+            defaultConstructor = clazz.getDeclaredConstructor();
+            defaultConstructor.setAccessible(true);
+            newInstance = (T)defaultConstructor.newInstance();
+        } catch (Exception e) {
+            LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Instance of class: " + clazz.toString() + " didn\'t create due to problem with constructor", e);
+        }
+        return newInstance;
+    }
 
     private void publishClassInfo(){
         for (ClassProperty classInfo : annotatedClassProperty) {
-            //TODO
             Class scannedClass = classInfo.getClazz();
-            Report report = (Report)scannedClass.getAnnotation(Report.class);
+            Annotation report = scannedClass.getAnnotation(Report.class);
             if (report!= null) {
-                //TODO report.path()
+
             }
         }
     }

@@ -3,7 +3,7 @@ package helper;
 import container.annotation.Copied;
 import container.annotation.Denied;
 import container.annotation.SnowFlake;
-
+import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -13,6 +13,8 @@ import java.util.Enumeration;
 import java.util.List;
 
 public final class ReflectionDecorator {
+    private static final Logger LOGGER = Log4j2Wrapper.getLogger(ReflectionDecorator.class.toString());
+
     private static List<ClassProperty> listAnnotatedClasses = new ArrayList<>();
 
     public static List<ClassProperty> getAnnotatedClasses(String packageName, Class annotationType) {
@@ -34,7 +36,7 @@ public final class ReflectionDecorator {
         try {
             resources = classLoader.getResources(path);
         } catch (IOException e) {
-            //TODO e.printStackTrace(); can't find package
+            LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Can\'t find out package: " + packageName, e);
         }
         List<File> dirs = new ArrayList();
         while (resources.hasMoreElements()) {
@@ -43,11 +45,7 @@ public final class ReflectionDecorator {
         }
         List<Class> classes = new ArrayList();
         for (File directory : dirs) {
-            try {
-                classes.addAll(findClasses(directory, packageName));
-            } catch (ClassNotFoundException e) {
-                //TODO e.printStackTrace();
-            }
+            classes.addAll(findClasses(directory, packageName));
         }
         
         return classes;
@@ -63,7 +61,7 @@ public final class ReflectionDecorator {
         return classProperty;
     }
 
-    private static List findClasses(File directory, String packageName) throws ClassNotFoundException {
+    private static List findClasses(File directory, String packageName) {
         List<Class> classes = new ArrayList();
         if (!directory.exists()) {
             return classes;
@@ -74,7 +72,13 @@ public final class ReflectionDecorator {
                 assert !file.getName().contains(".");
                 classes.addAll(findClasses(file, packageName + "." + file.getName()));
             } else if (file.getName().endsWith(".class")) {
-                classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+                String className = null;
+                try {
+                    className = packageName + '.' + file.getName().substring(0, file.getName().length() - 6);
+                    classes.add(Class.forName(className));
+                } catch (ClassNotFoundException e) {
+                    LOGGER.info(Log4j2Wrapper.MARKER_EXCEPTION, "Can\'t find out class: " + className, e);
+                }
             }
         }
         
