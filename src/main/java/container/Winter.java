@@ -18,7 +18,7 @@ import exception.BeanNotFound;
 import helper.FileHelper;
 
 import org.apache.log4j.Logger;
-import static helper.ReflectionDecorator.*;
+import helper.ReflectionDecorator;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -33,18 +33,18 @@ import java.util.Map;
 * The Winter class implements DI Container like lightweight DI in Spring Framework.
 * You can initialize Winter container by creating new instance of this class
 * and the use it creating new instances of the classes in the container
-* 
+*
 * @author  Alex Pinta, Oleh Pinta
 */
 public class Winter {
     private String packageName;
-    private List<ClassProperty> annotatedClassProperty = new ArrayList<>();
+    private List<ReflectionDecorator.ClassProperty> annotatedClassProperty = new ArrayList<>();
     private Map<Class, Object> objectPool = new HashMap<>();
-    static Logger logger = Logger.getRootLogger();
+    private static Logger logger = Logger.getRootLogger();
     
     public Winter() {
     }
-    
+
     public Winter(String packageName) {
     	this.packageName = packageName;
     	
@@ -64,7 +64,7 @@ public class Winter {
      * @param beanName. Using this string method find the class in annotatedClassProperty.
      * If it exists, then it create an instance of this class
      */
-    public <T>T getSnowflake(String beanName) {
+    public <T>T getSnowflake(final String beanName) {
         if (beanName == null || beanName.isEmpty()) {
             logger.info("Empty name of bean not allowed");
         }
@@ -72,11 +72,12 @@ public class Winter {
         T snowFlake = null;
         
         try {
-            ClassProperty classInfo = getClassByBeanName(beanName);
+            ReflectionDecorator.ClassProperty classInfo = getClassByBeanName(beanName);
             Class clazz = classInfo.getClazz();
             
             if (classInfo.isDenied()) {
-                throw new BeanCreationDeniedException("Creating instance of " + beanName + " forbidden. See info about " + Denied.class.toString());
+                throw new BeanCreationDeniedException("Creating instance of " + beanName + " forbidden. See info about "
+                        + Denied.class.toString());
             }
             
             if (!classInfo.isCopied()) {
@@ -89,7 +90,7 @@ public class Winter {
             } else {
             	snowFlake = createInstanceByClass(clazz);
             }
-        } catch (BeanNotFound e){
+        } catch (BeanNotFound e) {
             logger.info(e.getMessage(), e);
         } catch (BeanCreationDeniedException e) {
             logger.info(e.getMessage(), e);
@@ -102,8 +103,8 @@ public class Winter {
 	 * This method is used to find class property in annotatedClassProperty list.
 	 * @param beanName. Using this parameter method find the class in annotatedClassProperty and return it
 	 */
-    public ClassProperty getClassByBeanName(String beanName) throws BeanNotFound {
-        for (ClassProperty classInfo : annotatedClassProperty) {
+    public ReflectionDecorator.ClassProperty getClassByBeanName(final String beanName) throws BeanNotFound {
+        for (ReflectionDecorator.ClassProperty classInfo : annotatedClassProperty) {
             if (classInfo.getBeanName().equalsIgnoreCase(beanName)) {
                 return classInfo;
             }
@@ -132,7 +133,7 @@ public class Winter {
 	 * This method is used to create a Report and save it on your local machine.
 	 */
     private void publishClassInfo(){
-        for (ClassProperty classInfo : annotatedClassProperty) {
+        for (ReflectionDecorator.ClassProperty classInfo : annotatedClassProperty) {
             Class scannedClass = classInfo.getClazz();
             Report report = (Report)scannedClass.getAnnotation(Report.class);
             if (report!= null) {
@@ -163,7 +164,7 @@ public class Winter {
             }
         }
     }
-    
+
     /**
      * This method is used to initialize Winter container instance.
      * It fills all annotated class in the package packageName
@@ -173,6 +174,10 @@ public class Winter {
         	objectPool.clear();
         }
         
-        annotatedClassProperty = getAnnotatedClasses(packageName, SnowFlake.class);
+        annotatedClassProperty = ReflectionDecorator.getAnnotatedClasses(this.packageName, SnowFlake.class);
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 }

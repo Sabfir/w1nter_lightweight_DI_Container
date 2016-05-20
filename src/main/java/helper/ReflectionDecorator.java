@@ -14,10 +14,10 @@ import java.util.Enumeration;
 import java.util.List;
 
 public final class ReflectionDecorator {
-    static Logger logger = Logger.getRootLogger();
+    private static Logger logger = Logger.getRootLogger();
     private static List<ClassProperty> listAnnotatedClasses = new ArrayList<>();
 
-    public static List<ClassProperty> getAnnotatedClasses(String packageName, Class annotationType) {
+    public static List<ClassProperty> getAnnotatedClasses(final String packageName, final Class annotationType) {
     	listAnnotatedClasses.clear();
         
     	for (Class clazz : getClasses(packageName)) {
@@ -26,10 +26,9 @@ public final class ReflectionDecorator {
                 listAnnotatedClasses.add(getClassProperty(clazz, annotationType));
             }
         }
-        
         return listAnnotatedClasses;
     }
-    public static List<Class> getClasses(String packageName){
+    public static List<Class> getClasses(final String packageName){
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         String path = packageName.replace('.', '/');
         Enumeration resources = null;
@@ -47,11 +46,10 @@ public final class ReflectionDecorator {
         for (File directory : dirs) {
             classes.addAll(findClasses(directory, packageName));
         }
-        
         return classes;
     }
     
-    private static ClassProperty getClassProperty(Class scannedClass, Class annotationType) {
+    private static ClassProperty getClassProperty(final Class scannedClass, final Class annotationType) {
         ClassProperty classProperty = new ClassProperty(scannedClass);
         classProperty.setIsCopied(scannedClass.isAnnotationPresent(Copied.class));
         classProperty.setIsDenied(scannedClass.isAnnotationPresent(Denied.class));
@@ -61,7 +59,8 @@ public final class ReflectionDecorator {
         return classProperty;
     }
 
-    private static List findClasses(File directory, String packageName) {
+    private static List findClasses(final File directory, final String packageName) {
+        final String FILE_SUFFIX = ".class";
         List<Class> classes = new ArrayList();
         if (!directory.exists()) {
             return classes;
@@ -71,17 +70,16 @@ public final class ReflectionDecorator {
             if (file.isDirectory()) {
                 assert !file.getName().contains(".");
                 classes.addAll(findClasses(file, packageName + "." + file.getName()));
-            } else if (file.getName().endsWith(".class")) {
+            } else if (file.getName().endsWith(FILE_SUFFIX)) {
                 String className = null;
                 try {
-                    className = packageName + '.' + file.getName().substring(0, file.getName().length() - 6);
+                    className = packageName + '.' + file.getName().substring(0, file.getName().length() - FILE_SUFFIX.length());
                     classes.add(Class.forName(className));
                 } catch (ClassNotFoundException e) {
                     logger.info("Can\'t find out class: " + className, e);
                 }
             }
         }
-        
         return classes;
     }
 
@@ -91,28 +89,28 @@ public final class ReflectionDecorator {
         private boolean denied;
         private boolean copied;
 
-		private ClassProperty(Class clazz) {
+		ClassProperty(Class clazz) {
             this.clazz = clazz;
         }
         public Class getClazz() {
-            return clazz;
+            return this.clazz;
         }
         public boolean isDenied() {
-            return denied;
+            return this.denied;
         }
         private void setIsDenied(boolean isDenied) {
             this.denied = isDenied;
         }
         public boolean isCopied() {
-            return copied;
+            return this.copied;
         }
         private void setIsCopied(boolean isCopied) {
             this.copied = isCopied;
         }
         public String getBeanName() {
-            return beanName;
+            return this.beanName;
         }
-        private void setBeanName(String beanName) {
+        private void setBeanName(final String beanName) {
             this.beanName = beanName;
         }
     }

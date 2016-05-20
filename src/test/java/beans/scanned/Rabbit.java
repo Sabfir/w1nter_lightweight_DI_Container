@@ -11,9 +11,7 @@ public class Rabbit {
 	private int age;
 	private int name;
 	
-	public void sing() {
-		System.out.println("lya-lya-lya!");
-	}
+	public void sing() {}
 	
 	public int getAge() {
 		return age;

@@ -10,9 +10,7 @@ import container.annotation.SnowFlake;
 public class Fox {
 	private int weight;
 	
-	public void trickMe() {
-		System.out.println("done!");
-	}
+	public void trickMe() {}
 
 	public int getWeight() {
 		return weight;
