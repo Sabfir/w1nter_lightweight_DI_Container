@@ -1,3 +1,13 @@
+/**
+ * Helper classes used to work with files and packages
+ * <p>
+ * These classes contain the some CRUD with files and detecting classes in the package functionality
+ * </p>
+ *
+ * @since 1.0
+ * @author Alex Pinta, Oleh Pinta
+ * @version 1.0
+ */
 package helper;
 
 import container.annotation.Copied;
@@ -13,10 +23,20 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+/**
+ * The ReflectionDecorator class implements functionality to detect classes in the package and work with them
+ *
+ * @author  Alex Pinta, Oleh Pinta
+ */
 public final class ReflectionDecorator {
     private static Logger logger = Logger.getRootLogger();
     private static List<ClassProperty> listAnnotatedClasses = new ArrayList<>();
 
+    /**
+     * This method is used to get annotated classes in some package.
+     * @param packageName. Package name for filtering classes
+     * @param annotationType. Annotation for filtering classes
+     */
     public static List<ClassProperty> getAnnotatedClasses(final String packageName, final Class annotationType) {
     	listAnnotatedClasses.clear();
         
@@ -27,7 +47,12 @@ public final class ReflectionDecorator {
             }
         }
         return listAnnotatedClasses;
-    }
+   }
+
+    /**
+     * This method is used to get all classes in some package.
+     * @param packageName. Package name for filtering classes
+     */
     public static List<Class> getClasses(final String packageName){
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         String path = packageName.replace('.', '/');
@@ -48,7 +73,12 @@ public final class ReflectionDecorator {
         }
         return classes;
     }
-    
+
+    /**
+     * This method is used to get specified properties of class.
+     * @param scannedClass. The class which is used for collecting properties
+     * @param annotationType. An annotation which using for getting key property
+     */
     private static ClassProperty getClassProperty(final Class scannedClass, final Class annotationType) {
         ClassProperty classProperty = new ClassProperty(scannedClass);
         classProperty.setIsCopied(scannedClass.isAnnotationPresent(Copied.class));
@@ -59,6 +89,11 @@ public final class ReflectionDecorator {
         return classProperty;
     }
 
+    /**
+     * This method is used to find classes.
+     * @param directory. The directory for composing full path of class
+     * @param packageName. Package name for getting classes
+     */
     private static List findClasses(final File directory, final String packageName) {
         final String FILE_SUFFIX = ".class";
         List<Class> classes = new ArrayList();
@@ -83,6 +118,11 @@ public final class ReflectionDecorator {
         return classes;
     }
 
+    /**
+     * The ClassProperty inner class using for keeping specified class property
+     *
+     * @author  Alex Pinta, Oleh Pinta
+     */
     public static class ClassProperty {
         private String beanName;
         private Class clazz;
